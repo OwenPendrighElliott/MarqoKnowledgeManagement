@@ -24,13 +24,11 @@ const ChatWindow = () => {
     if (userInput) {
       // Add user's message to state
       setUserMessages([...userMessages, userInput]);
-      // // Call function to generate system response
-      // const systemResponse = generateSystemResponse(userInput);
-      // // Add system's response to state
-      // setSystemMessages([...systemMessages, systemResponse]);
-      // // Clear user's input
-      // setUserInput('');
+      setUserInput("");
+      // generate responses
       generateSystemResponse(userInput);
+
+      // setUserInput("");
     }
   };
 
@@ -39,6 +37,9 @@ const ChatWindow = () => {
     fetch(BASE_URL + "/getKnowledge", {
       method: "POST",
       mode: "cors",
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         q: userInput,
         conversation: conversation,
@@ -49,6 +50,8 @@ const ChatWindow = () => {
   };
 
   useEffect(() => {
+    console.log("RESP", systemResponse)
+    if (!systemResponse) return;
     setSystemMessages([...systemMessages, systemResponse]);
   }, [systemResponse])
 

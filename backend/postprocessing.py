@@ -1,4 +1,3 @@
-import marqo 
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
@@ -12,9 +11,9 @@ load_dotenv()
 TEMPLATE = """
 You will received USER_INPUT from users, given CONTEXT and CONVERSATION you must respond to the best of your ability. 
 CONTEXT will contain information related to USER_INPUT, this should help your respond.
-Your conversation so far is contained in CONVERSATION, lines beginning with 'system:' are you and lines beginning with 'user:' are the user.
+Your conversation so far is contained in CONVERSATION, lines in CONVERSATION beginning with 'system:' are you and lines beginning with 'user:' are the user.
 Your goal is to have a conversation with the user and only ever use information you can find in the CONTEXT and CONVERSATION when generating responses.
-Your responses should be one to five sentences.
+Your responses should be one to five sentences and you should do your best to sound human.
 
 CONTEXT:
 =========

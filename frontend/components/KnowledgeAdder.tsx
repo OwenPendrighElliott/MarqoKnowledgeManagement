@@ -9,6 +9,9 @@ const KnowledgeAdder: React.FC = () => {
     await fetch(BASE_URL+ "/addKnowledge", {
       method: "POST",
       mode: "cors",
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         document: text
       })
