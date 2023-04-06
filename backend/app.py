@@ -28,7 +28,7 @@ def get_knowledge():
     texts = [r[KNOWLEDGE_ATTR] for r in results['hits']]
 
     eloquent_response = converse(q, conversation, texts)
-
+    print(eloquent_response)
     return {"text": eloquent_response}
 
 @app.route("/addKnowledge", methods=["POST"])

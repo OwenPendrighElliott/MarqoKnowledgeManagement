@@ -9,21 +9,18 @@ load_dotenv()
 
 
 TEMPLATE = """
-You will received USER_INPUT from users, given CONTEXT and CONVERSATION you must respond to the best of your ability. 
-CONTEXT will contain information related to USER_INPUT, this should help your respond.
-Your conversation so far is contained in CONVERSATION, lines in CONVERSATION beginning with 'system:' are you and lines beginning with 'user:' are the user.
-Your goal is to have a conversation with the user and only ever use information you can find in the CONTEXT and CONVERSATION when generating responses.
-Your responses should be one to five sentences and you should do your best to sound human.
+Please provide a response to the user's prompt (USER_PROMPT) using only the information from the conversation history (CONVERSATION) and context from the knowledge management database (CONTEXT). Do not use any external knowledge sources.
 
 CONTEXT:
-=========
 {context}
+
 CONVERSATION:
-=========
 {conversation}
+
 USER_INPUT:
-=========
 {user_input}
+
+Provide your response here:
 """
 
 def converse(
