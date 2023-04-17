@@ -1,5 +1,7 @@
 import { BASE_URL } from '@/config/constants';
 import React, { useState, useEffect, useRef } from 'react';
+import { trackPromise } from 'react-promise-tracker'
+import BouncingDots from './BouncingDots';
 
 const ChatWindow = () => {
   const [userMessages, setUserMessages] = useState<string[]>([]);
@@ -33,18 +35,19 @@ const ChatWindow = () => {
   };
 
   const generateSystemResponse = (userInput: string) => {
-    let conversation = interleaveHistory(userMessages, systemMessages).map((msg) => msg.message)
-    fetch(BASE_URL + "/getKnowledge", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: userInput,
-        conversation: conversation,
-      })
-    })
+    let conversation = interleaveHistory(userMessages, systemMessages).map((msg) => msg.persona + ': ' + msg.message)
+    trackPromise(
+      fetch(BASE_URL + "/getKnowledge", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: userInput,
+          conversation: conversation,
+        })
+      }))
     .then(resp => resp.json())
     .then(data => setSystemResponse(data['text']));
   };
@@ -78,7 +81,7 @@ const ChatWindow = () => {
             <div 
               key={index.toString()} 
               className={`message ${message.persona}-message`}>
-                {message.message}
+                {message.message ? message.message : <BouncingDots/>}
             </div>
           ))}
         </div>

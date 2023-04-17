@@ -37,7 +37,7 @@ def converse(
     conversation = '\n'.join(conversation)
 
     prompt = PromptTemplate(template=TEMPLATE, input_variables=["context", "conversation", "user_input"])
-    llm = OpenAI(temperature=0.9,  model_name="text-davinci-003")
+    llm = OpenAI(temperature=0.9,  model_name="gpt3.5-turbo")
     chain_qa = LLMChain(llm=llm, prompt=prompt)
     llm_results = chain_qa(
         {"context": context, "conversation": conversation, "user_input": user_input}, 
