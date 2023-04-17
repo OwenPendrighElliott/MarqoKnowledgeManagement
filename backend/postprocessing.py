@@ -1,46 +1,58 @@
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
+
 from dotenv import load_dotenv
 
-from typing import List 
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from knowledge_store import MarqoKnowledgeStore
 
 load_dotenv()
 
+BACKGROUND = """
+You are a helpful assistant that aims to answer questions factually and accurately.
 
-TEMPLATE = """
-You will received USER_INPUT from users, given CONTEXT and CONVERSATION you must respond to the best of your ability. 
-CONTEXT will contain information related to USER_INPUT, this should help your respond.
-Your conversation so far is contained in CONVERSATION, lines in CONVERSATION beginning with 'system:' are you and lines beginning with 'user:' are the user.
-Your goal is to have a conversation with the user and only ever use information you can find in the CONTEXT and CONVERSATION when generating responses.
-Your responses should be one to five sentences and you should do your best to sound human.
+You can do one of two things:
+    Respond: You can send a message back to the user to answer their question or continue the conversation
+    Query: Send a query to your database to get more information. Queries can be in natural language - to indicate that you want to query you must preceed your message with 'QUERY:', this will give you more information to work with.
 
-CONTEXT:
-=========
-{context}
-CONVERSATION:
-=========
-{conversation}
-USER_INPUT:
-=========
-{user_input}
+It is important to know that you cannot query more than twice in a row
 """
+
 
 def converse(
     user_input: str,
     conversation: List[str],
-    knowledges: List[str], 
+    mks: MarqoKnowledgeStore,
+    limit: int
 ) -> str:
+
+    llm_conversation = [SystemMessage(BACKGROUND)]
+    for i in range(len(conversation)):
+        if i%2:
+            msg = AIMessage(conversation[i])
+        else:
+            msg = HumanMessage(conversation[i])
+        llm_conversation.append(msg)
+
+    llm_conversation.append(HumanMessage(user_input))
+
+    llm = ChatOpenAI(temperature=0.8,  model_name="gpt-3.5-turbo")
+
+    ai_message = llm(llm_conversation)
+
+    content = ai_message.content
+
+    if content.startswith("QUERY:"):
+        llm_conversation.append(SystemMessage(content.replace("QUERY:", "")))
+        ai_message = llm(llm_conversation)
+        content = ai_message.content
     
-    context = '. \n'.join(knowledges)
-
-    conversation = '\n'.join(conversation)
-
-    prompt = PromptTemplate(template=TEMPLATE, input_variables=["context", "conversation", "user_input"])
-    llm = OpenAI(temperature=0.9,  model_name="gpt3.5-turbo")
-    chain_qa = LLMChain(llm=llm, prompt=prompt)
-    llm_results = chain_qa(
-        {"context": context, "conversation": conversation, "user_input": user_input}, 
-        return_only_outputs=True
-    )
-    return llm_results['text']
+    return content
