@@ -29,11 +29,9 @@ const ChatWindow = () => {
       setUserInput("");
       // generate responses
       generateSystemResponse(userInput);
-
-      // setUserInput("");
     }
   };
-
+  
   const generateSystemResponse = (userInput: string) => {
     let conversation = interleaveHistory(userMessages, systemMessages).map((msg) => msg.persona + ': ' + msg.message)
     trackPromise(
@@ -94,6 +92,12 @@ const ChatWindow = () => {
           value={userInput}
           onChange={handleUserInput}
           disabled={systemMessages.length < userMessages.length}
+          onKeyDown={(event) => {
+            if (event.keyCode === 13 && !event.shiftKey) { // 13 is the keyCode for the enter key
+              event.preventDefault(); // Prevent the default behavior of the enter key
+              handleSendMessage();
+            }
+          }}
         />
         <button className="send-button" onClick={handleSendMessage}>Send</button>
       </div>

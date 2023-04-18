@@ -1,11 +1,10 @@
 from typing import Union, Dict, List, Callable, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    import marqo
+import marqo
 
 
 def default_chunker(document: str):
-    return [document]
+    return [{"text": document}]
 
 
 class MarqoKnowledgeStore:
@@ -19,11 +18,18 @@ class MarqoKnowledgeStore:
         self._index_name = index_name
         self._document_chunker = document_chunker
 
+        try:
+            self._client.create_index(self._index_name)
+        except:
+            print("Index exists")
+
     def query_for_content(
         self, query: Union[str, Dict[str, float]], content_var: str, limit: int = 5
     ):
         resp = self._client.index(self._index_name).search(q=query, limit=limit)
-        return [res[content_var] for res in resp["hits"]]
+        knowledge = [res[content_var] for res in resp["hits"] if res['_score'] > 0.6]
+
+        return knowledge if knowledge else [f"There is no information about {query}, appologise to the user for not knowing."]
 
     def add_document(self, document):
         self._client.index(self._index_name).add_documents(self._document_chunker(document))
