@@ -1,4 +1,4 @@
-from typing import Union, Dict, List, Callable, TYPE_CHECKING
+from typing import Union, Dict, List, Callable
 
 import marqo
 
@@ -27,9 +27,9 @@ class MarqoKnowledgeStore:
         self, query: Union[str, Dict[str, float]], content_var: str, limit: int = 5
     ):
         resp = self._client.index(self._index_name).search(q=query, limit=limit)
-        knowledge = [res[content_var] for res in resp["hits"] if res['_score'] > 0.6]
+        knowledge = [res[content_var] for res in resp["hits"] if res["_score"] > 0.6]
 
-        return knowledge if knowledge else [f"There is no information about {query}, appologise to the user for not knowing."]
+        return knowledge
 
     def add_document(self, document):
         self._client.index(self._index_name).add_documents(self._document_chunker(document))

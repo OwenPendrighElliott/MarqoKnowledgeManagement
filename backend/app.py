@@ -17,7 +17,7 @@ CHUNK_SIZE = 1024
 
 
 def chunker(document: str):
-    return [{'text': document[i : i + CHUNK_SIZE]} for i in range(0, len(document), CHUNK_SIZE)]
+    return [{"text": document[i : i + CHUNK_SIZE]} for i in range(0, len(document), CHUNK_SIZE)]
 
 
 MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)

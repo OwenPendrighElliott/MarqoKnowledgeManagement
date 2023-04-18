@@ -70,11 +70,23 @@ const ChatWindow = () => {
     return interleavedArr;
   }
 
+  function reset() {
+    setUserMessages([])
+    setSystemMessages([])
+    setUserInput('')
+    setSystemResponse('')
+  }
+
   return (
     <div className="chat-window" ref={chatWindowRef}>
+      
+      
       <div className="chat-content">
         <div className="message-list">
-
+        {userMessages.length ? 
+        (<button className="reset-button message system-message" onClick={reset}>Reset Conversation</button>) 
+      : 
+      ('')}
           {interleaveHistory(userMessages, systemMessages).map((message, index) => (
             <div 
               key={index.toString()} 
@@ -101,6 +113,7 @@ const ChatWindow = () => {
         />
         <button className="send-button" onClick={handleSendMessage}>Send</button>
       </div>
+      
     </div>
   );
 }
