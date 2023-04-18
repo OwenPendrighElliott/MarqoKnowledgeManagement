@@ -30,13 +30,17 @@ def make_query(conversation: List[Union[AIMessage, HumanMessage]]) -> str:
     return ai_message.content
 
 
-def make_answer(conversation: List[Union[SystemMessage, AIMessage, HumanMessage]]) -> str:
+def make_answer(
+    conversation: List[Union[SystemMessage, AIMessage, HumanMessage]]
+) -> str:
     conversation = [SystemMessage(content=ANSWERER)] + conversation
     ai_message = LLM(conversation)
     return ai_message.content
 
 
-def converse(user_input: str, conversation: List[str], mks: MarqoKnowledgeStore, limit: int) -> str:
+def converse(
+    user_input: str, conversation: List[str], mks: MarqoKnowledgeStore, limit: int
+) -> str:
     llm_conversation = []
     for i in range(len(conversation[-16:])):
         if i % 2:

@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 interface Props {
   onSubmit: (text: string) => void;
 }
 
 const DocumentAdd: React.FC<Props> = ({ onSubmit }) => {
-  const [text, setText] = useState<string>("");
+  const [text, setText] = useState<string>('');
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
@@ -13,7 +13,7 @@ const DocumentAdd: React.FC<Props> = ({ onSubmit }) => {
 
   const handleSubmit = () => {
     onSubmit(text);
-    setText("");
+    setText('');
   };
 
   return (

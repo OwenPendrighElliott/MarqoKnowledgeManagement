@@ -13,7 +13,7 @@ function URLAdd({ onSubmit }: URLAddProps) {
 
   const handleSubmit = () => {
     onSubmit(url);
-    setUrl("");
+    setUrl('');
   };
 
   return (

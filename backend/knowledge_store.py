@@ -32,7 +32,9 @@ class MarqoKnowledgeStore:
         return knowledge
 
     def add_document(self, document):
-        self._client.index(self._index_name).add_documents(self._document_chunker(document))
+        self._client.index(self._index_name).add_documents(
+            self._document_chunker(document)
+        )
 
     def reset_index(self):
         self._client.delete_index(self._index_name)
