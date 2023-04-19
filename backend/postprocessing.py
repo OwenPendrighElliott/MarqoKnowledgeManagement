@@ -9,18 +9,30 @@ from knowledge_store import MarqoKnowledgeStore
 
 load_dotenv()
 
-LLM = ChatOpenAI(temperature=0.8, model_name="gpt-3.5-turbo")
+LLM = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo")
+
+# QUESTIONER = """
+# Given the conversation, write the best possible question for a domain expert. Don't answer the human - just write a question that would best allow a domain expert to then answer on your behalf.
+# Assume that the domain expert can always answer the question and will help the human.
+# If there is no question that is related to last message from the human then just say "PASS".
+# """
 
 QUESTIONER = """
-Given the conversation, write the best possible question for a domain expert. Don't answer the human - just write a question that would best allow a domain expert to then answer on your behalf.
-Assume that the domain expert can always answer the question and will help the human.
-If there is no question that is related to last message from the human then just say "PASS".
+Pretend that you know nothing. Given the conversation, write a question which would be likely to return the information required to write an answer.
+Write only the question, nothing else.
 """
+
+# ANSWERER = """
+# You are a helpful and friendly AI assistant, your goal is to provide factual responses to the human.
+# The conversation will contain system messages that begin with "CONTEXT:", these messages contain truthful information that should be used to answer the human.
+# If you cannot find the answer in CONTEXT then apologise to the human and help them to refine their question.
+# """
 
 ANSWERER = """
 You are a helpful and friendly AI assistant, your goal is to provide factual responses to the human.
-The conversation will contain system messages that begin with "CONTEXT:", these messages contain truthful information that should be used to answer the human.
-If you cannot find the answer in CONTEXT then apologise to the human and help them to refine their question.
+You may use system messages that start with 'CONTEXT:' as sources of truth, if they are not useful or relevant then ignore them.
+You can't ever generate your own context, only use what was provided.
+NEVER respond in screenplay format.
 """
 
 
@@ -58,6 +70,7 @@ def converse(
 
     if not query.startswith("PASS"):
         context = mks.query_for_content(query, "text", limit if limit else 10)
+        print(len(context))
         llm_conversation.append(SystemMessage(content="CONTEXT: " + ". ".join(context)))
 
     answer = make_answer(llm_conversation)

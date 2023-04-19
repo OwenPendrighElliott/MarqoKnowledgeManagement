@@ -1,6 +1,7 @@
 import { BASE_URL } from '@/config/constants';
 import React, { useState, useEffect, useRef } from 'react';
 import { trackPromise } from 'react-promise-tracker';
+import ReactMarkdown from 'react-markdown';
 import BouncingDots from './BouncingDots';
 
 const ChatWindow = () => {
@@ -91,7 +92,12 @@ const ChatWindow = () => {
           )}
           {interleaveHistory(userMessages, systemMessages).map((message, index) => (
             <div key={index.toString()} className={`message ${message.persona}-message`}>
-              {message.message ? message.message : <BouncingDots />}
+              {/* {message.message ? message.message : <BouncingDots />} */}
+              {message.message ? (
+                <ReactMarkdown>{message.message}</ReactMarkdown>
+              ) : (
+                <BouncingDots />
+              )}
             </div>
           ))}
         </div>
