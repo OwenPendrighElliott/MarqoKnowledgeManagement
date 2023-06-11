@@ -3,7 +3,7 @@ from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import marqo
-from postprocessing import converse
+from ai_chat import converse, summarise
 from typing import List
 from knowledge_store import MarqoKnowledgeStore
 
@@ -24,7 +24,7 @@ def chunker(document: str):
 
 
 MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)
-
+# MKS.reset_index()
 
 def get_document_text(url: str) -> str:
     # Get the HTML content of the webpage
@@ -38,16 +38,19 @@ def get_document_text(url: str) -> str:
 @app.route("/getKnowledge", methods=["POST"])
 def get_knowledge():
     data = request.get_json()
-
     q: str = data.get("q")
     conversation: List[str] = data.get("conversation")
     limit = data.get("limit")
-
     # Generate an eloquent response using the extracted text and the current conversation
     eloquent_response = converse(q, conversation, MKS, limit)
-
     return {"text": eloquent_response}
 
+@app.route("/summarise", methods=["POST"])
+def condense_conversation():
+    data = request.get_json()
+    conversation: List[str] = data.get("conversation")
+    summary = summarise(conversation)
+    return {"text": summary}
 
 @app.route("/addKnowledge", methods=["POST"])
 def add_knowledge():

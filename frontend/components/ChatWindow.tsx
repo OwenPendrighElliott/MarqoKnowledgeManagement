@@ -3,12 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { trackPromise } from 'react-promise-tracker';
 import ReactMarkdown from 'react-markdown';
 import BouncingDots from './BouncingDots';
+import ErrorPopup from './ErrorPopup';
 
 const ChatWindow = () => {
   const [userMessages, setUserMessages] = useState<string[]>([]);
   const [systemMessages, setSystemMessages] = useState<string[]>([]);
   const [userInput, setUserInput] = useState<string>('');
   const [systemResponse, setSystemResponse] = useState<string>('');
+  const [backendError, setBackendError] = useState<boolean>(false);
+  const [conversationSummary, setConversationSummary] = useState<string>('');
   const chatWindowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,9 +35,7 @@ const ChatWindow = () => {
   };
 
   const generateSystemResponse = (userInput: string) => {
-    let conversation = interleaveHistory(userMessages, systemMessages).map(
-      (msg) => msg.persona + ': ' + msg.message,
-    );
+    let conversation = interleaveHistory(userMessages, systemMessages).map((msg) => msg.message);
     trackPromise(
       fetch(BASE_URL + '/getKnowledge', {
         method: 'POST',
@@ -43,15 +44,56 @@ const ChatWindow = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          q: userInput,
           conversation: conversation,
         }),
       }),
     )
-      .then((resp) => resp.json())
-      .then((data) => setSystemResponse(data['text']));
+      .then((resp) => {
+        if (resp.status === 500) {
+          handleErrorOccured();
+        }
+        return resp.json();
+      })
+      .then((data) => setConversationSummary(data['text']))
+      .catch((error) => {
+        console.error('Error:', error);
+        // Handle other types of errors here if needed
+      });
+
+    fetch(BASE_URL + '/summarise', {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        conversation: conversation,
+      }),
+    })
+      .then((resp) => {
+        if (resp.status === 500) {
+          handleErrorOccured();
+        }
+        return resp.json();
+      })
+      .then((data) => setSystemResponse(data['text']))
+      .catch((error) => {
+        console.error('Error:', error);
+        // Handle other types of errors here if needed
+      });
   };
 
+  const handleErrorOccured = () => {
+    setBackendError(true);
+  };
+
+  const handleErrorIgnore = () => {
+    setBackendError(false);
+  };
+  const handleErrorReset = () => {
+    setBackendError(false);
+    reset();
+  };
   useEffect(() => {
     console.log('RESP', systemResponse);
     if (!systemResponse) return;
@@ -93,7 +135,7 @@ const ChatWindow = () => {
           {interleaveHistory(userMessages, systemMessages).map((message, index) => (
             <div key={index.toString()} className={`message ${message.persona}-message`}>
               {/* {message.message ? message.message : <BouncingDots />} */}
-              {message.message ? (
+              {message.message != null ? (
                 <ReactMarkdown>{message.message}</ReactMarkdown>
               ) : (
                 <BouncingDots />
@@ -121,6 +163,7 @@ const ChatWindow = () => {
           Send
         </button>
       </div>
+      <ErrorPopup error={backendError} onIgnore={handleErrorIgnore} onReset={handleErrorReset} />
     </div>
   );
 };
