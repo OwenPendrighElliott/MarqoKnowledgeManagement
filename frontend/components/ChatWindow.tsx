@@ -36,8 +36,9 @@ const ChatWindow = () => {
 
   const generateSystemResponse = (userInput: string) => {
     let conversation = interleaveHistory(userMessages, systemMessages).map((msg) => msg.message);
-    trackPromise(
-      fetch(BASE_URL + '/getKnowledge', {
+
+    const streamRequest = async (conversation: string[], userInput: string) => {
+      const response = await fetch(BASE_URL + '/getKnowledge', {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -45,42 +46,56 @@ const ChatWindow = () => {
         },
         body: JSON.stringify({
           conversation: conversation,
+          q: userInput,
         }),
-      }),
-    )
-      .then((resp) => {
-        if (resp.status === 500) {
-          handleErrorOccured();
-        }
-        return resp.json();
-      })
-      .then((data) => setConversationSummary(data['text']))
-      .catch((error) => {
-        console.error('Error:', error);
-        // Handle other types of errors here if needed
       });
 
-    fetch(BASE_URL + '/summarise', {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        conversation: conversation,
-      }),
-    })
-      .then((resp) => {
-        if (resp.status === 500) {
-          handleErrorOccured();
+      if (!response.ok) {
+        handleErrorOccured();
+        throw new Error('Request failed');
+      }
+      if (response.body == null) return;
+      const reader = response.body.getReader();
+      let receivedText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
         }
-        return resp.json();
-      })
-      .then((data) => setSystemResponse(data['text']))
-      .catch((error) => {
-        console.error('Error:', error);
-        // Handle other types of errors here if needed
-      });
+
+        const textChunk = new TextDecoder('utf-8').decode(value);
+        receivedText += textChunk;
+        setSystemResponse(receivedText);
+      }
+    };
+
+    trackPromise(streamRequest(conversation, userInput)).catch((error) => {
+      console.error('Error:', error);
+    });
+
+    // fetch(BASE_URL + '/summarise', {
+    //   method: 'POST',
+    //   mode: 'cors',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     conversation: conversation,
+    //   }),
+    // })
+    //   .then((resp) => {
+    //     if (resp.status === 500) {
+    //       handleErrorOccured();
+    //     }
+    //     return resp.json();
+    //   })
+    //   .then((data) => setConversationSummary(data['text']))
+    //   .catch((error) => {
+    //     console.error('Error:', error);
+    //     // Handle other types of errors here if needed
+    //   });
   };
 
   const handleErrorOccured = () => {
@@ -97,7 +112,13 @@ const ChatWindow = () => {
   useEffect(() => {
     console.log('RESP', systemResponse);
     if (!systemResponse) return;
-    setSystemMessages([...systemMessages, systemResponse]);
+    if (systemMessages.length < userMessages.length) {
+      setSystemMessages([...systemMessages, systemResponse]);
+    } else {
+      const newSystemMessages = [...systemMessages];
+      newSystemMessages[newSystemMessages.length - 1] = systemResponse;
+      setSystemMessages(newSystemMessages);
+    }
   }, [systemResponse]);
 
   interface Message {

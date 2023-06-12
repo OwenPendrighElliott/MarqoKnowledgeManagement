@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response, stream_with_context
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -26,6 +26,7 @@ def chunker(document: str):
 MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)
 # MKS.reset_index()
 
+
 def get_document_text(url: str) -> str:
     # Get the HTML content of the webpage
     response = requests.get(url)
@@ -42,8 +43,18 @@ def get_knowledge():
     conversation: List[str] = data.get("conversation")
     limit = data.get("limit")
     # Generate an eloquent response using the extracted text and the current conversation
-    eloquent_response = converse(q, conversation, MKS, limit)
-    return {"text": eloquent_response}
+    # for delta in converse(q, conversation, MKS, limit):
+    #     print(delta)
+
+    # eloquent_response = "LLM did stuff"
+    # print(data)
+    # print(eloquent_response)
+    # return {"text": "This is a reponse for the frontend"}
+    return Response(
+        stream_with_context(converse(q, conversation, MKS, limit)),
+        mimetype="text/plain",
+    )
+
 
 @app.route("/summarise", methods=["POST"])
 def condense_conversation():
@@ -51,6 +62,7 @@ def condense_conversation():
     conversation: List[str] = data.get("conversation")
     summary = summarise(conversation)
     return {"text": summary}
+
 
 @app.route("/addKnowledge", methods=["POST"])
 def add_knowledge():
