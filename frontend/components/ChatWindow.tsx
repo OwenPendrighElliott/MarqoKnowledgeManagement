@@ -4,6 +4,15 @@ import { trackPromise } from 'react-promise-tracker';
 import ReactMarkdown from 'react-markdown';
 import BouncingDots from './BouncingDots';
 import ErrorPopup from './ErrorPopup';
+// import CodeBlock from './CodeBlock';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import MarkdownMessage from './MarkdownMessage';
+
+export interface Message {
+  persona: string;
+  message: string;
+}
 
 const ChatWindow = () => {
   const [userMessages, setUserMessages] = useState<string[]>([]);
@@ -121,11 +130,6 @@ const ChatWindow = () => {
     }
   }, [systemResponse]);
 
-  interface Message {
-    persona: string;
-    message: string;
-  }
-
   function interleaveHistory(user: string[], system: string[]): Message[] {
     let interleavedArr: Message[] = [];
     for (let i = 0; i < user.length; i++) {
@@ -155,12 +159,7 @@ const ChatWindow = () => {
           )}
           {interleaveHistory(userMessages, systemMessages).map((message, index) => (
             <div key={index.toString()} className={`message ${message.persona}-message`}>
-              {/* {message.message ? message.message : <BouncingDots />} */}
-              {message.message != null ? (
-                <ReactMarkdown>{message.message}</ReactMarkdown>
-              ) : (
-                <BouncingDots />
-              )}
+              {message.message != null ? <MarkdownMessage message={message} /> : <BouncingDots />}
             </div>
           ))}
         </div>
