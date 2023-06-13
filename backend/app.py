@@ -6,7 +6,8 @@ import marqo
 from ai_chat import converse, summarise
 from typing import List
 from knowledge_store import MarqoKnowledgeStore
-
+import document_processors
+from document_processors import simple_chunker
 app = Flask(__name__)
 CORS(app)
 
@@ -15,16 +16,10 @@ CLIENT = marqo.Client("http://localhost:8882")
 KNOWLEDGE_ATTR = "knowledge"
 CHUNK_SIZE = 1024
 
+document_processors.CHUNK_SIZE = CHUNK_SIZE
 
-def chunker(document: str):
-    return [
-        {"text": document[i : i + CHUNK_SIZE]}
-        for i in range(0, len(document), CHUNK_SIZE)
-    ]
-
-
-MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)
-# MKS.reset_index()
+MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=simple_chunker)
+MKS.reset_index()
 
 
 def get_document_text(url: str) -> str:
