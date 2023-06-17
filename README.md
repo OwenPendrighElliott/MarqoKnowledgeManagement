@@ -2,7 +2,8 @@
 
 This project is a small demo of a knowledge management system that integrates Marqo and ChatGPT. You can spin this demo up easily on a laptop.
 
-![Demo](readme_assets/Marqo%20ChatGPT%20Organisational%20Knowledge%20Demo.mov)
+https://github.com/OwenPendrighElliott/MarqoKnowledgeManagement/assets/41710527/7507336f-5fb4-447b-8ecf-82fb981a208f
+
 
 ## Project Structure
 
