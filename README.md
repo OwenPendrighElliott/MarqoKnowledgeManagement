@@ -1,6 +1,9 @@
 # Marqo Knowledge Management
 
-This project is a small demo of a knowledge management system in using Marqo and ChatGPT that can be hosted at home! (with the exception of ChatGPT)
+This project is a small demo of a knowledge management system that integrates Marqo and ChatGPT. You can spin this demo up easily on a laptop.
+
+<!-- ![Demo](readme_assets/Marqo%20ChatGPT%20Organisational%20Knowledge%20Demo.mov) -->
+<video src='readme_assets/Marqo%20ChatGPT%20Organisational%20Knowledge%20Demo.mov' />
 
 ## Project Structure
 
