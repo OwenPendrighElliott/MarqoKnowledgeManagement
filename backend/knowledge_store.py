@@ -27,9 +27,13 @@ class MarqoKnowledgeStore:
         self, query: Union[str, Dict[str, float]], content_var: str, limit: int = 5
     ):
         resp = self._client.index(self._index_name).search(q=query, limit=limit)
-        knowledge = [res[content_var] for res in resp["hits"] if res["_score"] > 0.6]
 
-        return knowledge
+        data = {"search_results": []}
+        for hit in resp["hits"]:
+            del hit["_highlights"]
+            del hit["_id"]
+            data["search_results"].append(hit)
+        return resp
 
     def add_document(self, document):
         self._client.index(self._index_name).add_documents(

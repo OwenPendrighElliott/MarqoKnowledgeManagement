@@ -1,9 +1,9 @@
-from flask import Flask, request
+from flask import Flask, request, Response, stream_with_context
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
 import marqo
-from postprocessing import converse
+from ai_chat import converse
 from typing import List
 from knowledge_store import MarqoKnowledgeStore
 
@@ -24,6 +24,7 @@ def chunker(document: str):
 
 
 MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)
+# MKS.reset_index()
 
 
 def get_document_text(url: str) -> str:
@@ -43,10 +44,10 @@ def get_knowledge():
     conversation: List[str] = data.get("conversation")
     limit = data.get("limit")
 
-    # Generate an eloquent response using the extracted text and the current conversation
-    eloquent_response = converse(q, conversation, MKS, limit)
-
-    return {"text": eloquent_response}
+    return Response(
+        stream_with_context(converse(q, conversation, MKS, limit)),
+        mimetype="text/plain",
+    )
 
 
 @app.route("/addKnowledge", methods=["POST"])
