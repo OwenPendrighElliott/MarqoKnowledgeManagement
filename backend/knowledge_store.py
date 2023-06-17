@@ -23,9 +23,7 @@ class MarqoKnowledgeStore:
         except:
             print("Index exists")
 
-    def query_for_content(
-        self, query: Union[str, Dict[str, float]], content_var: str, limit: int = 5
-    ):
+    def query_for_content(self, query: Union[str, Dict[str, float]], limit: int = 5):
         resp = self._client.index(self._index_name).search(q=query, limit=limit)
 
         data = {"search_results": []}

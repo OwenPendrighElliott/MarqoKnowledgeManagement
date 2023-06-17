@@ -1,12 +1,11 @@
 import openai
 from data_models import HumanMessage, AIMessage, SystemMessage
 import json
+from utils import remove_responses
+from knowledge_store import MarqoKnowledgeStore
+from typing import List, Dict, Generator
 
 from dotenv import load_dotenv
-
-from typing import List, Union
-
-from knowledge_store import MarqoKnowledgeStore
 
 load_dotenv()
 
@@ -28,21 +27,23 @@ FUNCTIONS = [
 ]
 
 
-def search_marqo(query: str, mks: MarqoKnowledgeStore, limit: int):
-    results = mks.query_for_content(query, "", limit=limit if limit is not None else 3)
-    return json.dumps(results)
-    # return mks.query_for_content(query, 'text', limit if limit else 3)
+def search_marqo(query: str, mks: MarqoKnowledgeStore, limit: int) -> str:
+    try:
+        results = mks.query_for_content(query, limit=limit if limit is not None else 3)
+        return json.dumps(results)
+    except Exception as e:
+        return {"marqo_search_error": e}
 
 
-def format_chat(conversation, user_input):
+def format_chat(conversation: List[str], user_input: str) -> List[Dict[str, str]]:
     llm_conversation = [
         SystemMessage(
             content="All code should specify the language so that markdown can be rendered."
         )
     ]
-    for i in range(len(conversation[-16:])):
+    for i in range(len(conversation)):
         if i % 2:
-            msg = AIMessage(content=conversation[i])
+            msg = AIMessage(content=remove_responses(conversation[i]))
         else:
             msg = HumanMessage(content=conversation[i])
         llm_conversation.append(msg)
@@ -52,14 +53,16 @@ def format_chat(conversation, user_input):
     return open_ai_conversation
 
 
-def append_function_deltas(function_call, delta_function_call):
+def append_function_deltas(
+    function_call: Dict[str, str], delta_function_call: Dict[str, str]
+) -> Dict[str, str]:
     function_call["arguments"] += delta_function_call["arguments"]
     return function_call
 
 
 def converse(
     user_input: str, conversation: List[str], mks: MarqoKnowledgeStore, limit: int
-) -> str:
+) -> Generator:
     conversation = format_chat(conversation, user_input)
     stream1 = openai.ChatCompletion.create(
         model="gpt-3.5-turbo-0613",
@@ -90,10 +93,7 @@ def converse(
     if function_call is not None:
         yield "\n```\n".encode("utf-8")
 
-    # print(type(function_call["name"]))
     stream1.close()
-
-    # print(response)
 
     message = {
         "role": "assistant",
@@ -103,22 +103,17 @@ def converse(
             "arguments": function_call["arguments"],
         },
     }
-    # print(message)
-    # Step 2, check if the model wants to call a function
+
     if message.get("function_call"):
         function_name = message["function_call"]["name"]
 
-        # Step 3, call the function
-        # Note: the JSON response from the model may not be valid JSON
         arguments = json.loads(message["function_call"]["arguments"])
         function_response = search_marqo(
             query=arguments.get("query"), mks=mks, limit=limit
         )
         yield "\n```curl\nResponse:\n".encode("utf-8")
         yield f"{json.dumps(function_response, indent=4)}\n```\n".encode("utf-8")
-        # print(function_response)
 
-        # Step 4, send model the info on the function call and function response
         stream2 = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-0613",
             messages=[

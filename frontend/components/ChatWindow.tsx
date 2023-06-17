@@ -119,7 +119,6 @@ const ChatWindow = () => {
     reset();
   };
   useEffect(() => {
-    console.log('RESP', systemResponse);
     if (!systemResponse) return;
     if (systemMessages.length < userMessages.length) {
       setSystemMessages([...systemMessages, systemResponse]);

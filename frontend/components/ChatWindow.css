@@ -38,6 +38,8 @@
   border-radius: 15px;
   font-size: 14px;
   white-space: pre-line;
+  max-width: 97%;
+  overflow: scroll;
 }
 
 .message ol {
