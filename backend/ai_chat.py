@@ -29,7 +29,7 @@ FUNCTIONS = [
 
 def search_marqo(query: str, mks: MarqoKnowledgeStore, limit: int) -> str:
     try:
-        results = mks.query_for_content(query, limit=limit if limit is not None else 3)
+        results = mks.query_for_content(query, limit=limit if limit is not None else 4)
         return json.dumps(results)
     except Exception as e:
         return {"marqo_search_error": e}

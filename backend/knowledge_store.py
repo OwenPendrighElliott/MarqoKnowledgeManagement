@@ -18,8 +18,21 @@ class MarqoKnowledgeStore:
         self._index_name = index_name
         self._document_chunker = document_chunker
 
+        self._index_settings = {
+            "index_defaults": {
+                "model": "hf/all_datasets_v4_MiniLM-L6",
+                "text_preprocessing": {
+                    "split_length": 2,
+                    "split_overlap": 0,
+                    "split_method": "sentence",
+                },
+            }
+        }
+
         try:
-            self._client.create_index(self._index_name)
+            self._client.create_index(
+                self._index_name, settings_dict=self._index_settings
+            )
         except:
             print("Index exists")
 
@@ -40,4 +53,4 @@ class MarqoKnowledgeStore:
 
     def reset_index(self):
         self._client.delete_index(self._index_name)
-        self._client.create_index(self._index_name)
+        self._client.create_index(self._index_name, settings_dict=self._index_settings)

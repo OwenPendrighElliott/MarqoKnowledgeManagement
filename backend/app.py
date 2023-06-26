@@ -24,7 +24,7 @@ def chunker(document: str):
 
 
 MKS = MarqoKnowledgeStore(CLIENT, INDEX_NAME, document_chunker=chunker)
-# MKS.reset_index()
+MKS.reset_index()
 
 
 def get_document_text(url: str) -> str:
